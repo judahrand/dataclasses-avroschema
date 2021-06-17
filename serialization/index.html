@@ -301,6 +301,19 @@
     Deserialization
   </a>
   
+    <nav class="md-nav" aria-label="Deserialization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deserialization-of-records-encoded-via-a-different-schema" class="md-nav__link">
+    Deserialization of records encoded via a different schema
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -410,6 +423,19 @@
     Deserialization
   </a>
   
+    <nav class="md-nav" aria-label="Deserialization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deserialization-of-records-encoded-via-a-different-schema" class="md-nav__link">
+    Deserialization of records encoded via a different schema
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -516,7 +542,7 @@ In both cases we can do it with <code>avro</code> or <code>avro-json</code>.</p>
 
 <span class="c1"># return a new class instance!!</span>
 <span class="n">User</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">avro_binary</span><span class="p">)</span>
-<span class="c1"># &gt;&gt;&gt;&gt; User(name=&#39;john&#39;, age=20, addresses=[Address(street=&#39;test&#39;, street_number=10)])</span>
+<span class="c1"># &gt;&gt;&gt; User(name=&#39;john&#39;, age=20, addresses=[Address(street=&#39;test&#39;, street_number=10)])</span>
 
 <span class="c1"># return a python dict</span>
 <span class="n">User</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">avro_binary</span><span class="p">,</span> <span class="n">create_instance</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -524,11 +550,42 @@ In both cases we can do it with <code>avro</code> or <code>avro-json</code>.</p>
 
 <span class="c1"># return a new class instance!!</span>
 <span class="n">User</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">avro_json_binary</span><span class="p">,</span> <span class="n">serialization_type</span><span class="o">=</span><span class="s2">&quot;avro-json&quot;</span><span class="p">)</span>
-<span class="c1"># &gt;&gt;&gt;&gt; User(name=&#39;john&#39;, age=20, addresses=[Address(street=&#39;test&#39;, street_number=10)])</span>
+<span class="c1"># &gt;&gt;&gt; User(name=&#39;john&#39;, age=20, addresses=[Address(street=&#39;test&#39;, street_number=10)])</span>
 
 <span class="c1"># return a python dict</span>
 <span class="n">User</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">avro_json_binary</span><span class="p">,</span> <span class="n">serialization_type</span><span class="o">=</span><span class="s2">&quot;avro-json&quot;</span><span class="p">,</span> <span class="n">create_instance</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="c1"># &gt;&gt;&gt; {&quot;name&quot;: &quot;john&quot;, &quot;age&quot;: 20, &quot;addresses&quot;: [{&quot;street&quot;: &quot;test&quot;, &quot;street_number&quot;: 10}]}</span>
+</code></pre></div>
+
+
+<h4 id="deserialization-of-records-encoded-via-a-different-schema">Deserialization of records encoded via a different schema</h4>
+<p>To deserialize data encoded via a different schema, one can pass an optional <code>writer_schema: AvroModel | dict[str, Any]</code> attribute. It will be used by the <strong>fastavro</strong>s <code>schemaless_reader</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">AvroModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">UserCompatible</span><span class="p">(</span><span class="n">AvroModel</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">nickname</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">schema_name</span> <span class="o">=</span> <span class="s2">&quot;User&quot;</span>
+
+
+<span class="n">user_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;G.R. Emlin&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">52</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># serialize data with the User schema</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">serialized_user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="o">**</span><span class="n">user_data</span><span class="p">)</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+
+<span class="c1"># deserialize user using a new, but compatible schema</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">deserialized_user</span> <span class="o">=</span> <span class="n">UserCompatible</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">serialized_user</span><span class="p">,</span> <span class="n">writer_schema</span><span class="o">=</span><span class="n">User</span><span class="p">)</span>
 </code></pre></div>
 
 
