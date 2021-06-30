@@ -319,8 +319,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#avoid-name-colision-in-multiple-relationships" class="md-nav__link">
-    Avoid name colision in multiple relationships
+  <a href="#avoid-name-collision-in-multiple-relationships" class="md-nav__link">
+    Avoid name collision in multiple relationships
   </a>
   
 </li>
@@ -467,8 +467,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#avoid-name-colision-in-multiple-relationships" class="md-nav__link">
-    Avoid name colision in multiple relationships
+  <a href="#avoid-name-collision-in-multiple-relationships" class="md-nav__link">
+    Avoid name collision in multiple relationships
   </a>
   
 </li>
@@ -748,9 +748,9 @@
 </code></pre></div>
 
 
-<h2 id="avoid-name-colision-in-multiple-relationships">Avoid name colision in multiple relationships</h2>
+<h2 id="avoid-name-collision-in-multiple-relationships">Avoid name collision in multiple relationships</h2>
 <p>Sometimes we have relationships where a class is related more than once with a particular class,
-and the name for the nested schemas must be diferent, otherwise we will generate an invalid <code>avro schema</code>.</p>
+and the name for the nested schemas must be different, otherwise we will generate an invalid <code>avro schema</code>.</p>
 <p>For example:</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -774,7 +774,7 @@ and the name for the nested schemas must be diferent, otherwise we will generate
 </code></pre></div>
 
 
-<p>In order to avoid name colisions, the nested name is generated in the following way:</p>
+<p>In order to avoid name collision, the nested name is generated in the following way:</p>
 <ol>
 <li>Get the lower name of the related class</li>
 <li>Get the field name</li>
@@ -843,6 +843,63 @@ and the name for the nested schemas must be diferent, otherwise we will generate
   <span class="p">],</span>
   <span class="s2">&quot;doc&quot;</span><span class="p">:</span> <span class="s2">&quot;Trip(start_time: datetime.datetime, start_location: __main__.Location, finish_time: datetime.datetime, finish_location: __main__.Location)&quot;</span>
 <span class="p">}</span><span class="s1">&#39;</span>
+</code></pre></div>
+
+
+<p>If you want, also you can use custom name for nested items (<code>nested records</code>, <code>arrays</code> or <code>maps</code>) using the property <code>alias_nested_items</code> in <code>class Meta</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">dataclasses_avroschema</span> <span class="kn">import</span> <span class="n">AvroModel</span>
+
+
+<span class="k">class</span> <span class="nc">Address</span><span class="p">(</span><span class="n">AvroModel</span><span class="p">):</span>
+    <span class="s2">&quot;An Address&quot;</span>
+    <span class="n">street</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">street_number</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">AvroModel</span><span class="p">):</span>
+    <span class="s2">&quot;An User with Address&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">address</span><span class="p">:</span> <span class="n">Address</span>  <span class="c1"># default name address_record</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">alias_nested_items</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;MySuperAddress&quot;</span><span class="p">}</span>
+</code></pre></div>
+
+
+<p><code>User.avro_schema()</code> will generate:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;record&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;address&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;record&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;MySuperAddress&quot;</span><span class="p">,</span>  <span class="err">//</span> <span class="err">renamed</span> <span class="err">it</span> <span class="err">using</span> <span class="err">alias_nested_items</span>
+                <span class="nt">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;street&quot;</span><span class="p">,</span>
+                        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;street_number&quot;</span><span class="p">,</span>
+                        <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="nt">&quot;doc&quot;</span><span class="p">:</span> <span class="s2">&quot;An Address&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span> 
+    <span class="p">],</span>
+    <span class="nt">&quot;doc&quot;</span><span class="p">:</span> <span class="s2">&quot;An User with Address&quot;</span>
+<span class="p">}</span>
 </code></pre></div>
                 
               
